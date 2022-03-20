@@ -1,6 +1,6 @@
 # Baseline UDA
 uda = dict(
-    type='DACS',
+    type='ClusteringDACS',
     alpha=0.99,
     pseudo_threshold=0.968,
     pseudo_weight_ignore_top=0,
@@ -14,5 +14,9 @@ uda = dict(
     color_jitter_probability=0.2,
     debug_img_interval=1000,
     print_grad_magnitude=False,
+    source_ds='synthia',
+    target_ds='cityspaces',
+    n_clusters=16,
+    acc_amount=40
 )
 use_ddp_wrapper = True

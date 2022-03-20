@@ -1,4 +1,5 @@
 import json
+import os
 import os.path as osp
 
 import mmcv
@@ -73,7 +74,7 @@ class UDADataset(object):
                 self.samples_with_class[c] = []
                 for file, pixels in samples_with_class_and_n[c]:
                     if pixels > self.rcs_min_pixels:
-                        self.samples_with_class[c].append(file.split('/')[-1])
+                        self.samples_with_class[c].append(file.split(os.sep)[-1])
                 assert len(self.samples_with_class[c]) > 0
             self.file_to_idx = {}
             for i, dic in enumerate(self.source.img_infos):

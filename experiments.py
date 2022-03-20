@@ -360,7 +360,7 @@ def generate_experiment_cfgs(id):
     # Final DAFormer (Table 6)
     # -------------------------------------------------------------------------
     elif id == 7:
-        seeds = [0, 1, 2]
+        seeds = [2]
         datasets = [
             # ('gta', 'cityscapes'),  # already run in exp 6
             ('synthia', 'cityscapes'),
