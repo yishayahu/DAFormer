@@ -54,10 +54,10 @@ class ClusteringDACS(DACS):
         self.clustering_dacs = True
 
 
-    def calc_align_loss(self, feat=None, img_metas=None):
+    def calc_align_loss(self, features1=None, img_metas=None,device='cpu'):
         self.step_counter+=1
 
-        if self.step_counter == 5:
+        if self.step_counter == 30:
             self.step_counter = 0
             self.source_clusters = []
             self.target_clusters = []
@@ -103,15 +103,15 @@ class ClusteringDACS(DACS):
             self.slice_to_feature_source = {}
             self.slice_to_feature_target = {}
 
-        dist_loss = torch.tensor(0.0,device=feat.device)
-        for i in range(feat.shape[0]):
-            feat1,meta1 = feat[i], img_metas[i]
+        dist_loss = torch.tensor(0.0,device=device)
+        for i in range(features1.shape[0]):
+            feat1,meta1 = features1[i], img_metas[i]
             imname = meta1['ori_filename'].split('.')[0]
             if self.source_ds in meta1['filename']:
-                self.slice_to_feature_source[imname] = feat1
+                self.slice_to_feature_source[imname] = feat1.detach().cpu().numpy()
             else:
                 # assert self.target_ds in  meta1['filename']
-                self.slice_to_feature_target[imname] = feat1
+                self.slice_to_feature_target[imname] = feat1.detach().cpu().numpy()
                 if self.best_matchs is not None and imname  in self.slice_to_cluster:
                     self.accumulate_for_loss[self.slice_to_cluster[imname]].append(feat1)
         use_dist_loss = False

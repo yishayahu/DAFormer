@@ -226,7 +226,7 @@ class DACS(UDADecorator):
 
         # Train on source images
         device1 = gt_semantic_seg.device if torch.cuda.is_available() else 'cpu'
-
+        # device1 = 'cpu'
         model = self.get_model().to(device1)
 
         img = img.to(device1)
@@ -263,7 +263,7 @@ class DACS(UDADecorator):
         if self.clustering_dacs:
             target_feat = model.extract_feat(target_img.to(device1))
 
-            align_loss,align_log = self.calc_align_loss(torch.cat([src_feat[-1],target_feat[-1]],dim=0),img_metas+target_img_metas)
+            align_loss,align_log = self.calc_align_loss(torch.cat([src_feat[-1],target_feat[-1]],dim=0),img_metas+target_img_metas,device1)
             if float(align_loss) > 0:
                 align_loss.backward()
                 log_vars.update(align_log)
