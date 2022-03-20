@@ -17,6 +17,6 @@ uda = dict(
     source_ds='synthia',
     target_ds='cityspaces',
     n_clusters=16,
-    acc_amount=40
+    acc_amount=1
 )
 use_ddp_wrapper = True
