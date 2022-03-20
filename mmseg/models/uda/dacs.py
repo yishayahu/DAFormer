@@ -250,7 +250,7 @@ class DACS(UDADecorator):
         if self.enable_fdist:
             feat_loss, feat_log = self.calc_feat_dist(img, gt_semantic_seg,
                                                       src_feat)
-            feat_loss.backward()
+            feat_loss.backward(retain_graph=self.clustering_dacs)
             log_vars.update(add_prefix(feat_log, 'src'))
             if self.print_grad_magnitude:
                 params = model.backbone.parameters()
