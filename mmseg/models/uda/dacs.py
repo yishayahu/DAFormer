@@ -225,21 +225,16 @@ class DACS(UDADecorator):
         }
 
         # Train on source images
-        device1 = gt_semantic_seg.device if torch.cuda.is_available() else 'cpu'
-        # device1 = 'cpu'
-        model = self.get_model().to(device1)
+        clean_losses = self.get_model().forward_train(
+            img, img_metas, gt_semantic_seg, return_feat=True,target_images=target_img)
 
-        img = img.to(device1)
-        gt_semantic_seg = gt_semantic_seg.to(device1)
-        target_img = target_img.to(device1)
-        clean_losses = model.forward_train(
-            img, img_metas, gt_semantic_seg, return_feat=True)
         src_feat = clean_losses.pop('features')
         clean_loss, clean_log_vars = self._parse_losses(clean_losses)
         log_vars.update(clean_log_vars)
+
         clean_loss.backward(retain_graph=self.enable_fdist)
         if self.print_grad_magnitude:
-            params = model.backbone.parameters()
+            params = self.get_model().backbone.parameters()
             seg_grads = [
                 p.grad.detach().clone() for p in params if p.grad is not None
             ]
@@ -253,28 +248,30 @@ class DACS(UDADecorator):
             feat_loss.backward(retain_graph=self.clustering_dacs)
             log_vars.update(add_prefix(feat_log, 'src'))
             if self.print_grad_magnitude:
-                params = model.backbone.parameters()
+                params = self.get_model().backbone.parameters()
                 fd_grads = [
                     p.grad.detach() for p in params if p.grad is not None
                 ]
                 fd_grads = [g2 - g1 for g1, g2 in zip(seg_grads, fd_grads)]
                 grad_mag = calc_grad_magnitude(fd_grads)
                 mmcv.print_log(f'Fdist Grad.: {grad_mag}', 'mmseg')
-        if self.clustering_dacs:
-            target_feat = model.extract_feat(target_img.to(device1))
 
-            align_loss,align_log = self.calc_align_loss(torch.cat([src_feat[-1],target_feat[-1]],dim=0),img_metas+target_img_metas,device1)
+        if self.clustering_dacs:
+
+            featurtes1 =clean_losses['all_features']
+            align_loss,align_log = self.calc_align_loss(featurtes1,img_metas+target_img_metas,feat_loss.device)
             if float(align_loss) > 0:
                 align_loss.backward()
                 log_vars.update(align_log)
-        ema_model = self.get_ema_model().to(device1)
+
+
         # Generate pseudo-label
-        for m in ema_model.modules():
+        for m in self.get_ema_model().modules():
             if isinstance(m, _DropoutNd):
                 m.training = False
             if isinstance(m, DropPath):
                 m.training = False
-        ema_logits = ema_model.encode_decode(
+        ema_logits = self.get_ema_model().encode_decode(
             target_img, target_img_metas)
 
         ema_softmax = torch.softmax(ema_logits.detach(), dim=1)
@@ -311,7 +308,7 @@ class DACS(UDADecorator):
         mixed_lbl = torch.cat(mixed_lbl)
 
         # Train on mixed images
-        mix_losses = model.forward_train(
+        mix_losses = self.get_model().forward_train(
             mixed_img, img_metas, mixed_lbl, pseudo_weight, return_feat=True)
         mix_losses.pop('features')
         mix_losses = add_prefix(mix_losses, 'mix')

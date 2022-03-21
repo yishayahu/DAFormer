@@ -135,7 +135,7 @@ class EncoderDecoder(BaseSegmentor):
                       img_metas,
                       gt_semantic_seg,
                       seg_weight=None,
-                      return_feat=False):
+                      return_feat=False,target_images=None):
         """Forward function for training.
 
         Args:
@@ -151,9 +151,19 @@ class EncoderDecoder(BaseSegmentor):
         Returns:
             dict[str, Tensor]: a dictionary of loss components
         """
-        x = self.extract_feat(img)
-
         losses = dict()
+        if target_images is not None:
+            x = self.extract_feat(torch.cat([img,target_images]))
+
+            losses['all_features'] = x[-1]
+            for i in range(len(x)):
+                x[i] = x[i][:len(img)]
+
+
+        else:
+            x = self.extract_feat(img)
+
+
         if return_feat:
             losses['features'] = x
 

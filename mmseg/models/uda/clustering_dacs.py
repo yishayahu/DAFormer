@@ -58,7 +58,7 @@ class ClusteringDACS(DACS):
     def calc_align_loss(self, features1=None, img_metas=None, device='cpu'):
         self.step_counter += 1
 
-        if self.step_counter == 1000:
+        if self.step_counter == 300:
             self.step_counter = 0
             self.source_clusters = []
             self.target_clusters = []
@@ -118,7 +118,7 @@ class ClusteringDACS(DACS):
                     self.accumulate_for_loss[self.slice_to_cluster[imname]].append(feat1)
         use_dist_loss = False
         lens1 = [len(x) for x in self.accumulate_for_loss]
-        if np.sum(lens1) > self.acc_amount:
+        if np.sum(lens1) >= self.acc_amount:
             use_dist_loss = True
         if use_dist_loss:
             total_amount = 0
