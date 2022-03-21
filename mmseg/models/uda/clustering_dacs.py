@@ -58,7 +58,7 @@ class ClusteringDACS(DACS):
     def calc_align_loss(self, features1=None, img_metas=None, device='cpu'):
         self.step_counter += 1
 
-        if self.step_counter == 300:
+        if self.step_counter == 2000:
             self.step_counter = 0
             self.source_clusters = []
             self.target_clusters = []

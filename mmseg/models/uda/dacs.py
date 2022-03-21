@@ -229,6 +229,7 @@ class DACS(UDADecorator):
             img, img_metas, gt_semantic_seg, return_feat=True,target_images=target_img)
 
         src_feat = clean_losses.pop('features')
+        featurtes1 = clean_losses.pop('all_featuresss')
         clean_loss, clean_log_vars = self._parse_losses(clean_losses)
         log_vars.update(clean_log_vars)
 
@@ -258,7 +259,7 @@ class DACS(UDADecorator):
 
         if self.clustering_dacs:
 
-            featurtes1 =clean_losses['all_features']
+
             align_loss,align_log = self.calc_align_loss(featurtes1,img_metas+target_img_metas,feat_loss.device)
             if float(align_loss) > 0:
                 align_loss.backward()

@@ -155,7 +155,7 @@ class EncoderDecoder(BaseSegmentor):
         if target_images is not None:
             x = self.extract_feat(torch.cat([img,target_images]))
 
-            losses['all_features'] = x[-1]
+            losses['all_featuresss'] = x[-1]
             for i in range(len(x)):
                 x[i] = x[i][:len(img)]
 
