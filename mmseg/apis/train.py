@@ -59,6 +59,14 @@ def train_segmentor(model,
             seed=cfg.seed,
             drop_last=True) for ds in dataset
     ]
+    if cfg.uda['from_pretrained']:
+        model.load_state_dict(torch.load('seed1.pth',map_location='cpu')['state_dict'])
+    if cfg.uda['freeze_decoder']:
+        for n,p in model.named_parameters():
+            if 'decode_head' in n:
+                p.requires_grad = False
+            else:
+                assert 'backbone' in n
 
     # put model on gpus
     if distributed:

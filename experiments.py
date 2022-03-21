@@ -366,7 +366,8 @@ def generate_experiment_cfgs(id):
             ('synthia', 'cityscapes'),
         ]
         architecture, backbone = ('daformer_sepaspp', 'mitb5')
-        uda = 'dacs_a999_fdthings'
+        # uda = 'dacs_a999_fdthings'
+        uda = 'clusterin_dacs_config'
         rcs_T = 0.01
         plcrop = True
         for (source, target), seed in \
