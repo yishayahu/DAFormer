@@ -4,6 +4,6 @@ uda = dict(
     source_ds='synthia',
     target_ds='cityspaces',
     n_clusters=16,
-    acc_amount=1,
+    acc_amount=30,
     freeze_decoder=True
 )

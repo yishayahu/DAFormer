@@ -54,11 +54,12 @@ class ClusteringDACS(DACS):
         self.avg_dist_losses = []
         self.step_counter = 0
         self.clustering_dacs = True
+        self.use_dist_loss = False
 
     def calc_align_loss(self, features1=None, img_metas=None, device='cpu'):
         self.step_counter += 1
 
-        if self.step_counter == 2000:
+        if self.step_counter == 300:
             self.step_counter = 0
             self.source_clusters = []
             self.target_clusters = []
@@ -116,11 +117,11 @@ class ClusteringDACS(DACS):
                 self.slice_to_feature_target[imname] = feat1.detach().cpu().numpy()
                 if self.best_matchs is not None and imname in self.slice_to_cluster:
                     self.accumulate_for_loss[self.slice_to_cluster[imname]].append(feat1)
-        use_dist_loss = False
+        self.use_dist_loss = False
         lens1 = [len(x) for x in self.accumulate_for_loss]
         if np.sum(lens1) >= self.acc_amount:
             use_dist_loss = True
-        if use_dist_loss:
+        if self.use_dist_loss:
             total_amount = 0
             dist_losses = [0] * len(self.accumulate_for_loss)
             for i, features in enumerate(self.accumulate_for_loss):
@@ -141,27 +142,14 @@ class ClusteringDACS(DACS):
                    'target_feats': len(self.slice_to_feature_target)})
         return dist_loss, {'avg_dist_losses': np.mean(self.avg_dist_losses)}
 
-    # with torch.no_grad():
-    #     self.get_imnet_model().eval()
-    #     feat_imnet = self.get_imnet_model().extract_feat(img)
-    #     feat_imnet = [f.detach() for f in feat_imnet]
-    # lay = -1
-    # if self.fdist_classes is not None:
-    #     fdclasses = torch.tensor(self.fdist_classes, device=gt.device)
-    #     scale_factor = gt.shape[-1] // feat[lay].shape[-1]
-    #     gt_rescaled = downscale_label_ratio(gt, scale_factor,
-    #                                         self.fdist_scale_min_ratio,
-    #                                         self.num_classes,
-    #                                         255).long().detach()
-    #     fdist_mask = torch.any(gt_rescaled[..., None] == fdclasses, -1)
-    #     feat_dist = self.masked_feat_dist(feat[lay], feat_imnet[lay],
-    #                                       fdist_mask)
-    #     self.debug_fdist_mask = fdist_mask
-    #     self.debug_gt_rescale = gt_rescaled
-    # else:
-    #     feat_dist = self.masked_feat_dist(feat[lay], feat_imnet[lay])
-    # feat_dist = self.fdist_lambda * feat_dist
-    # feat_loss, feat_log = self._parse_losses(
-    #     {'loss_imnet_feat_dist': feat_dist})
-    # feat_log.pop('loss', None)
-    # return feat_loss, feat_log
+    def train_step(self, data_batch, optimizer, **kwargs):
+        if self.best_matchs is None or self.use_dist_loss:
+            optimizer.zero_grad()
+        log_vars = self(**data_batch)
+        if self.best_matchs is None or self.use_dist_loss:
+            optimizer.step()
+
+        log_vars.pop('loss', None)  # remove the unnecessary 'loss'
+        outputs = dict(
+            log_vars=log_vars, num_samples=len(data_batch['img_metas']))
+        return outputs
